@@ -1,0 +1,30 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/album_art.png</file>
+        <file>images/back.png</file>
+        <file>images/background.png</file>
+        <file>images/center_point.png</file>
+        <file>images/drawer.png</file>
+        <file>images/header.png</file>
+        <file>images/hold.png</file>
+        <file>images/music.png</file>
+        <file>images/next.png</file>
+        <file>images/next_hold.png</file>
+        <file>images/pause.png</file>
+        <file>images/pause_hold.png</file>
+        <file>images/play.png</file>
+        <file>images/play_hold.png</file>
+        <file>images/playing.png</file>
+        <file>images/playlist_bg.png</file>
+        <file>images/playlist_item.png</file>
+        <file>images/point.png</file>
+        <file>images/prev.png</file>
+        <file>images/prev_hold.png</file>
+        <file>images/repeat.png</file>
+        <file>images/repeat_hold.png</file>
+        <file>images/shuffle.png</file>
+        <file>images/shuffle_hold.png</file>
+        <file>images/us_flag.png</file>
+        <file>images/vn_flag.png</file>
+    </qresource>
+</RCC>
