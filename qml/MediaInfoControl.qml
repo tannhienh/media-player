@@ -7,10 +7,12 @@ Item {
     // Media Info
     Item {
         id: mediaInfo
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: parent.height * 0.12
+        height: parent.height * 0.12 // 870 * 0.12 = 104.4
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
 
         // Dark effect on top media info
         Rectangle {
@@ -32,24 +34,41 @@ Item {
         // Song title
         Text {
             id: audioTitle
-            anchors.top: parent.top
-            anchors.topMargin: mediaInfo.height * 0.14
-            anchors.left: parent.left
-            anchors.leftMargin: mediaInfo.width / 70
-            text: albumArtView.currentItem.getData.title === "" ? "Unknown" : albumArtView.currentItem.getData.title
+
+            text: if (playlistModel.rowCount() > 0)
+                    return (albumArtView.currentItem.getData.title === ""
+                            ? "Unknown" : albumArtView.currentItem.getData.title)
+                  else
+                    return ""
+
             color: "White"
             font.pixelSize: mediaInfo.height * 0.32
+            font.family: cantarell.name
+            anchors{
+                top: parent.top
+                topMargin: mediaInfo.height * 0.14 //  14.56
+                left: parent.left
+                leftMargin: mediaInfo.width / 70
+            }
         }
 
         // Singer
         Text {
             id: audioSinger
-            anchors.top: audioTitle.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: mediaInfo.width / 70
-            text: albumArtView.currentItem.getData.singer === "" ? "Unknown" : albumArtView.currentItem.getData.singer
+            text: if (playlistModel.rowCount() > 0)
+                    return (albumArtView.currentItem.getData.singer === ""
+                            ? "Unknown" : albumArtView.currentItem.getData.singer)
+                  else
+                    return ""
+
             color: "LightGray"
             font.pixelSize: mediaInfo.height * 0.27
+            font.family: cantarell.name
+            anchors {
+                top: audioTitle.bottom
+                left: parent.left
+                leftMargin: mediaInfo.width / 70
+            }
         }
 
         // Icon Amount of song
@@ -58,9 +77,11 @@ Item {
             source: "qrc:/images/music.png"
             height: mediaInfo.height * 0.35
             width: height
-            anchors.right: songAmount.left
-            anchors.rightMargin: mediaInfo.height * 0.1
-            anchors.verticalCenter: mediaInfo.verticalCenter
+            anchors {
+                right: songAmount.left
+                rightMargin: mediaInfo.height * 0.1
+                verticalCenter: mediaInfo.verticalCenter
+            }
         }
 
         // Amount of song in playlist
@@ -69,19 +90,25 @@ Item {
             text: albumArtView.count
             color: "white"
             font.pixelSize: mediaInfo.height * 0.35
-            anchors.right: mediaInfo.right
-            anchors.rightMargin: mediaInfo.height * 0.2
-            anchors.verticalCenter: mediaInfo.verticalCenter
+            font.family: cantarell.name
+            anchors {
+                right: mediaInfo.right
+                rightMargin: mediaInfo.height * 0.2
+                verticalCenter: mediaInfo.verticalCenter
+            }
         }
     }
 
     // Album Art Item
     Item {
         id: albumArtItem
-        anchors.top: mediaInfo.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
         height: parent.height * 0.6
+        anchors {
+            top: mediaInfo.bottom
+            left: parent.left
+            right: parent.right
+        }
+
 
         // Delegate for album art view
         Component {
@@ -91,7 +118,7 @@ Item {
                 property variant getData: model
                 width: albumArtItem.height * 0.65
                 height: width
-                scale: PathView.iconScale
+                scale:  PathView.iconScale === undefined ? 0 : PathView.iconScale
                 opacity: PathView.isCurrentItem ? 1 : 0.8
 
                 Image {
@@ -105,7 +132,8 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: albumArtView.currentIndex = index
+                    onClicked: if (player.playlist.currentIndex != index)
+                                    player.playlist.currentIndex = index
                 }
 
                 DropShadow {
@@ -118,35 +146,49 @@ Item {
                     spread: 0
                     source: albumPicture
                 }
+
+                transform: Scale {
+                    origin.x: 0.5
+                    origin.y: 0.5
+                }
             }
         }
 
         // AlbumArt View
         PathView {
             id: albumArtView
-            anchors.leftMargin: (albumArtItem.width - (albumArtItem.height * 1.8)) / 2
+            anchors.leftMargin: (albumArtItem.width -
+                                 (albumArtItem.height * 1.8)) / 2
             anchors.fill: albumArtItem
             preferredHighlightBegin: 0.5
             preferredHighlightEnd: 0.5
             focus: true
-            model: appModel
+            model: playlistModel
             delegate: albumArtDelegate
             pathItemCount: 3
+            currentIndex: playlist.currentIndex
 
             path: Path {
                 startX: 0
                 startY: albumArtItem.height * 0.45
                 PathAttribute { name: "iconScale"; value: 0.5 }
-                PathLine { x: albumArtItem.height * 0.9; y: albumArtItem.height * 0.45}
+                PathLine {
+                    x: albumArtItem.height * 0.9
+                    y: albumArtItem.height * 0.45
+                }
                 PathAttribute { name: "iconScale"; value: 1.0 }
-                PathLine { x: albumArtItem.height * 1.8; y: albumArtItem.height * 0.45}
+                PathLine {
+                    x: albumArtItem.height * 1.8
+                    y: albumArtItem.height * 0.45
+                }
                 PathAttribute { name: "iconScale"; value: 0.5 }
             }
 
             onCurrentIndexChanged: {
-                albumArtView.currentIndex = currentIndex
-                player.playlist.currentIndex = currentIndex
+                changeText.targets = [audioTitle, audioSinger]
+                changeText.restart()
             }
+
 
             PropertyAnimation {
                 id: changeText
@@ -155,15 +197,10 @@ Item {
                 duration: 500
                 easing.type: Easing.InOutCubic
             }
-
-            onCurrentItemChanged: {
-                changeText.targets = [audioTitle, audioSinger]
-                changeText.restart()
-            }
         }
 
         Connections {
-            target: player.playlist
+            target: playlist
             onCurrentIndexChanged: {
                 albumArtView.currentIndex = index
             }
@@ -173,37 +210,44 @@ Item {
     // ProgressBar
     Item {
         id: progressBarItem
-        anchors.left: parent.left
-        anchors.bottom: mediaControl.top
-        anchors.right: parent.right
         height: parent.height / 20
+        anchors {
+            left: parent.left
+            bottom: mediaControl.top
+            right: parent.right
+        }
 
         // Current time playing
         Text {
             id: currentTime
             text: utility.getTimeInfo(player.position)
             color: "White"
-            anchors.left: progressBarItem.left
-            anchors.leftMargin: 150
-            anchors.verticalCenter: progressBar.verticalCenter
             font.pixelSize: parent.height * 0.4
+            font.family: cantarell.name
+            anchors {
+                left: progressBarItem.left
+                leftMargin: 150
+                verticalCenter: progressBar.verticalCenter
+            }
         }
 
         Slider{
             id: progressBar
-            anchors.left: currentTime.right
-            anchors.leftMargin: 20
-            anchors.right: totalTime.left
-            anchors.rightMargin: 20
-            anchors.verticalCenter: progressBarItem.verticalCenter
             from: 0.0
             to: player.duration
             value: player.position
+            anchors {
+                left: currentTime.right
+                leftMargin: 20
+                right: totalTime.left
+                rightMargin: 20
+                verticalCenter: progressBarItem.verticalCenter
+            }
 
             background: Rectangle {
-                id: aa
                 x: progressBar.leftPadding
-                y: progressBar.topPadding + progressBar.availableHeight / 2 - height / 2
+                y: progressBar.topPadding + (progressBar.availableHeight / 2)
+                   - (height / 2)
                 width: progressBar.availableWidth
                 height: progressBarItem.height * 0.127
                 radius: height
@@ -223,8 +267,10 @@ Item {
                 width: progressBarItem.height * 0.5
                 height: width + 2
                 anchors.verticalCenter: parent.verticalCenter
-                x: progressBar.leftPadding + progressBar.visualPosition * (progressBar.availableWidth - width / 2)
-                y: progressBar.topPadding + progressBar.availableHeight / 2 - height / 2
+                x: progressBar.leftPadding + progressBar.visualPosition *
+                   (progressBar.availableWidth - width / 2)
+                y: progressBar.topPadding + (progressBar.availableHeight / 2)
+                   - height / 2
                 Image {
                     id: centerPoint
                     anchors.centerIn: parent
@@ -243,22 +289,27 @@ Item {
         Text {
             id: totalTime
             text: utility.getTimeInfo(player.duration)
+            font.family: cantarell.name
             color: "White"
-            anchors.right: progressBarItem.right
-            anchors.rightMargin: 150
-            anchors.verticalCenter: progressBar.verticalCenter
             font.pixelSize: parent.height * 0.4
+            anchors {
+                right: progressBarItem.right
+                rightMargin: 150
+                verticalCenter: progressBar.verticalCenter
+            }
         }
     }
 
     // Media Control
     Item {
         id: mediaControl
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
         height: parent.height / 6
-        anchors.bottomMargin: parent.height / 25
+        anchors {
+            left: parent.left
+            bottom: parent.bottom
+            right: parent.right
+            bottomMargin: parent.height / 25
+        }
 
         // Previous button
         ButtonControl {
@@ -272,7 +323,8 @@ Item {
             icon_released: "qrc:/images/prev.png"
 
             onClicked: {
-                if (player.playlist.currentIndex !== 0 || repeatButton.status || shuffleButton.status)
+                if (player.playlist.currentIndex !== 0 || repeatButton.status
+                    || shuffleButton.status)
                     utility.previous(player);
             }
         }
@@ -285,9 +337,12 @@ Item {
             anchors.centerIn: mediaControl
 
             status: player.state === MediaPlayer.PlayingState ? true : false
-            icon_default: status ? "qrc:/images/pause.png" : "qrc:/images/play.png"
-            icon_pressed: status ? "qrc:/images/pause_hold.png" : "qrc:/images/play_hold.png"
-            icon_released: status ? "qrc:/images/play.png" : "qrc:/images/pause.png"
+            icon_default: status ? "qrc:/images/pause.png" :
+                                   "qrc:/images/play.png"
+            icon_pressed: status ? "qrc:/images/pause_hold.png" :
+                                   "qrc:/images/play_hold.png"
+            icon_released: status ? "qrc:/images/play.png" :
+                                    "qrc:/images/pause.png"
 
             onClicked: {
                 if (playButton.status)
@@ -300,9 +355,11 @@ Item {
                 target: player
                 onStateChanged: {
                     if (player.state === MediaPlayer.PlayingState)
-                        playButton.source_default = "qrc:/images/pause.png"
+                        playButton.source_default =
+                                "qrc:/images/pause.png"
                     else
-                        playButton.source_default = "qrc:/images/play.png"
+                        playButton.source_default =
+                                "qrc:/images/play.png"
                 }
             }
         }
@@ -319,7 +376,8 @@ Item {
             icon_released: "qrc:/images/next.png"
 
             onClicked: {
-                if (player.playlist.currentIndex !== (albumArtView.count - 1) || repeatButton.status || shuffleButton.status)
+                if (player.playlist.currentIndex !== (albumArtView.count - 1)
+                        || repeatButton.status || shuffleButton.status)
                     utility.next(player);
             }
         }
@@ -329,12 +387,14 @@ Item {
             id: shuffleButton
             m_height: mediaControl.height * 0.33
             m_width: m_height * 2.04
-            anchors.left: mediaControl.left
-            anchors.leftMargin: 150
-            anchors.verticalCenter: mediaControl.verticalCenter
+            anchors {
+                left: mediaControl.left
+                leftMargin: 150
+                verticalCenter: mediaControl.verticalCenter
+            }
             icon_on: "qrc:/images/shuffle_hold.png"
             icon_off: "qrc:/images/shuffle.png"
-            status: player.playlist.playbackMode === Playlist.Random ? 1 : 0
+            status: playlist.playbackMode === Playlist.Random ? 1 : 0
 
             onStatusChanged: {
                 if (shuffleButton.status) {
@@ -351,12 +411,14 @@ Item {
             id: repeatButton
             m_width: shuffleButton.width
             m_height: shuffleButton.height
-            anchors.right: mediaControl.right
-            anchors.rightMargin: 150
-            anchors.verticalCenter: mediaControl.verticalCenter
+            anchors {
+                right: mediaControl.right
+                rightMargin: 150
+                verticalCenter: mediaControl.verticalCenter
+            }
             icon_on: "qrc:/images/repeat_hold.png"
             icon_off: "qrc:/images/repeat.png"
-            status: player.playlist.playbackMode === Playlist.Loop ? 1 : 0
+            status: playlist.playbackMode === Playlist.Loop ? 1 : 0
 
             onStatusChanged: {
                 if (repeatButton.status) {
