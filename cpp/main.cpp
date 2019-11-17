@@ -19,15 +19,22 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QMediaPlaylist*>("QMediaPlaylist*");
 
     QQmlApplicationEngine engine;
+
+    //------------------------------------------------------------------------//
+    // Translation
     Translation translator(&app);
-
     translator.setLanguage(DEFAULT_LANGUAGE);
-
-    Player player;
-    engine.rootContext()->setContextProperty("appModel", player.m_playlistModel);
-    engine.rootContext()->setContextProperty("player", player.m_player);
-    engine.rootContext()->setContextProperty("utility", &player);
     engine.rootContext()->setContextProperty("translator", &translator);
+    //------------------------------------------------------------------------//
+
+    //------------------------------------------------------------------------//
+    // Media Player
+    Player player;
+    engine.rootContext()->setContextProperty("playlistModel", player.m_playlistModel);
+    engine.rootContext()->setContextProperty("player", player.m_player);
+    engine.rootContext()->setContextProperty("playlist", player.m_playlist);
+    engine.rootContext()->setContextProperty("utility", &player);
+    //------------------------------------------------------------------------//
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
