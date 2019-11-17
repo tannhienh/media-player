@@ -12,14 +12,15 @@ Drawer {
         id: playlistBg
         source: "qrc:/images/playlist_bg.png"
         anchors.fill: parent
+
     }
 
     ListView {
         id: mediaPlaylist
         anchors.fill: parent
-        model: appModel
+        model: playlistModel
         spacing: playlistBg.height / 260
-        currentIndex: 0
+        currentIndex: playlist.currentIndex
         clip: true
         delegate: MouseArea {
             id: mouseAreaItem
@@ -30,7 +31,7 @@ Drawer {
                 id: playlistItem
                 source: "qrc:/images/playlist_item.png"
                 width: playlistBg.width
-                height: playlistBg.height / 6
+                height: (playlistBg.height - (mediaPlaylist.spacing * 5)) / 6
                 opacity: 0.5
             }
 
@@ -71,7 +72,8 @@ Drawer {
             }
 
             onReleased: {
-                playlistItem.source = "qrc:/images/playlist_item.png"
+                playlistItem.source =
+                        "qrc:/images/playlist_item.png"
             }
 
             onClicked: {
@@ -83,7 +85,8 @@ Drawer {
             }
 
             onCanceled: {
-                playlistItem.source = "qrc:/images/playlist_item.png"
+                playlistItem.source =
+                        "qrc:/images/playlist_item.png"
             }
 
             PropertyAnimation {
@@ -118,10 +121,9 @@ Drawer {
         }
 
         Connections {
-            target: player.playlist
+            target: playlist
             onCurrentIndexChanged:
                 mediaPlaylist.currentIndex = index
-//            }
         }
     }
 }
