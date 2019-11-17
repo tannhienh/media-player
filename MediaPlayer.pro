@@ -19,6 +19,7 @@ SOURCES += \
     cpp/translation.cpp
 
 RESOURCES += qml.qrc \
+    fonts.qrc \
     images.qrc \
     translator.qrc
 
