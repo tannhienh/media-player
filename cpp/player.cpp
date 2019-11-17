@@ -1,6 +1,3 @@
-#include "cpp/player.h"
-#include "cpp/playlistmodel.h"
-
 #include <QMediaService>
 #include <QMediaPlaylist>
 #include <QMediaMetaData>
@@ -10,31 +7,39 @@
 #include <QDir>
 #include <QStandardPaths>
 
-Player::Player(QObject *parent)
-    : QObject(parent)
+#include "cpp/player.h"
+#include "cpp/playlistmodel.h"
+
+// Constructor Player function
+Player::Player(QObject *parent) : QObject(parent)
 {
-    m_player = new QMediaPlayer(this);
-    m_playlist = new QMediaPlaylist(this);
-    m_player->setPlaylist(m_playlist);
-    m_playlistModel = new PlaylistModel(this);
-    open();
-    if (!m_playlist->isEmpty()) {
+    m_player = new QMediaPlayer(this);          // Create Media Player
+    m_playlist = new QMediaPlaylist(this);      // Create Media Playlist
+    m_player->setPlaylist(m_playlist);          // Set playlist for media player
+    m_playlistModel = new PlaylistModel(this);  // Create playlist model
+    open();     // Load audios
+
+    // If playlist not empty, set current index is first audio
+    if (!m_playlist->isEmpty())
         m_playlist->setCurrentIndex(0);
-    }
 }
 
 // Load audios from default location of Music directory which are mp3 file
 // get path for add to playlist
 void Player::open()
 {
-    QDir directory(QStandardPaths::standardLocations(QStandardPaths::MusicLocation)[0]);
-    QFileInfoList musics = directory.entryInfoList(QStringList() << "*.mp3", QDir::Files);
+    QDir directory(QStandardPaths::standardLocations
+                   (QStandardPaths::MusicLocation)[0]);
+
+    QFileInfoList musics = directory.entryInfoList(QStringList() << "*.mp3",
+                                                   QDir::Files);
     QList<QUrl> urls;
+
     for (int i = 0; i < musics.length(); i++){
         urls.append(QUrl::fromLocalFile(musics[i].absoluteFilePath()));
     }
 
-    addToPlaylist(urls);
+    addToPlaylist(urls);    // Add list audios to playlist
 }
 
 // add list of audios to playlist model
@@ -69,31 +74,31 @@ QString Player::getTimeInfo(qint64 timeInput)
     return timeFormated;
 }
 
-// Previous process
+// Previous song in playlist
 void Player::previous(QMediaPlayer *player)
 {
     player->playlist()->previous();
 }
 
-// Play process
+// Play media process
 void Player::play(QMediaPlayer *player)
 {
     player->play();
 }
 
-// Pause precess
+// Pause media process
 void Player::pause(QMediaPlayer *player)
 {
     player->pause();
 }
 
-// Next process
+// Next song in playlist
 void Player::next(QMediaPlayer *player)
 {
     player->playlist()->next();
 }
 
-// Shuffle process
+// Set shuffle mode for playlist
 void Player::shuffle(QMediaPlayer *player, bool status)
 {
     if (status)
@@ -102,7 +107,7 @@ void Player::shuffle(QMediaPlayer *player, bool status)
         player->playlist()->setPlaybackMode(QMediaPlaylist::Sequential);
 }
 
-// Repeat process
+// Set loop mode for playlist
 void Player::loop(QMediaPlayer *player, bool status)
 {
     if (status)
@@ -125,34 +130,34 @@ QString Player::getAlbumArt(QUrl url)
     FILE *jpegFile;
     jpegFile = fopen(QString(url.fileName()+".jpg").toStdString().c_str(),"wb");
 
-    if ( id3v2tag )
+    if (id3v2tag)
     {
         // picture frame
         Frame = id3v2tag->frameListMap()[IdPicture] ;
-        if (!Frame.isEmpty() )
+        if (!Frame.isEmpty())
         {
-            for(ID3v2::FrameList::ConstIterator it = Frame.begin(); it != Frame.end(); ++it)
+            for(ID3v2::FrameList::ConstIterator it = Frame.begin();
+                it != Frame.end(); ++it)
             {
                 PicFrame = static_cast<ID3v2::AttachedPictureFrame*>(*it) ;
                 {
                     Size = PicFrame->picture().size() ;
                     SrcImage = malloc ( Size ) ;
-                    if ( SrcImage )
+                    if (SrcImage)
                     {
-                        memcpy ( SrcImage, PicFrame->picture().data(), Size ) ;
+                        memcpy (SrcImage, PicFrame->picture().data(), Size ) ;
                         fwrite(SrcImage,Size,1, jpegFile);
                         fclose(jpegFile);
                         free( SrcImage ) ;
-                        return QUrl::fromLocalFile(url.fileName()+".jpg").toDisplayString();
+                        return QUrl::fromLocalFile(url.fileName()+".jpg").\
+                                     toDisplayString();
                     }
-
                 }
             }
         }
     }
     else
-    {
         return "qrc:/images/album_art.png";
-    }
+
     return "qrc:/images/album_art.png";
 }
