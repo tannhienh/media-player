@@ -5,7 +5,17 @@ import QtQuick.Controls 2.13
 ApplicationWindow {
     visible: true
     visibility: "FullScreen"
-    title: qsTr("Media Player")
+    title: qsTr("MediaPlayer")
+
+    //-----------------------------------------------------------------------//
+    // Load Font from attached resource font.qrc
+
+    // Font Cantarell
+    FontLoader {
+        id: cantarell
+        source: "qrc:/Font/Cantarell-Regular.ttf"
+    }
+    //-----------------------------------------------------------------------//
 
     // Background of Application
     Image {
